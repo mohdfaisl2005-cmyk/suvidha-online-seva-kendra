@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suvidha Admin — Enquiry Management</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{
+    --navy:#0B1E3D; --blue:#1B4FD8; --orange:#F5730C; --gray:#F4F7FB;
+    --border:#E2E8F0; --ink:#10192E; --muted:#5B6B8C; --good:#128A3E; --bad:#D93025;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,Segoe UI,Inter,Arial,sans-serif; background:var(--gray); color:var(--ink); margin:0; padding:0;}
+  header{background:var(--navy); color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center;}
+  header h1{font-size:1.1rem; margin:0;}
+  header button{background:transparent; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:8px 14px; border-radius:8px; cursor:pointer;}
+  main{max-width:960px; margin:0 auto; padding:32px 20px;}
+  .card{background:#fff; border:1px solid var(--border); border-radius:14px; padding:24px; margin-bottom:20px; box-shadow:0 2px 10px rgba(11,30,61,0.06);}
+  label{display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;}
+  input,select,textarea{width:100%; padding:11px 13px; border:1.5px solid var(--border); border-radius:8px; font:inherit; margin-bottom:14px;}
+  textarea{min-height:80px; resize:vertical;}
+  button.primary{background:var(--blue); color:#fff; border:none; padding:11px 20px; border-radius:8px; font-weight:600; cursor:pointer;}
+  button.primary:disabled{opacity:0.6; cursor:default;}
+  button.secondary{background:#fff; border:1.5px solid var(--border); padding:10px 18px; border-radius:8px; cursor:pointer;}
+  table{width:100%; border-collapse:collapse; font-size:0.88rem;}
+  th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{color:var(--muted); font-weight:600; font-size:0.78rem; text-transform:uppercase;}
+  .status-pill{display:inline-block; padding:3px 10px; border-radius:999px; font-size:0.75rem; font-weight:600; background:#EEF2FF; color:var(--blue);}
+  .msg{font-size:0.9rem; font-weight:600; min-height:1.2em; margin-top:8px;}
+  .msg.good{color:var(--good);} .msg.bad{color:var(--bad);}
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;}
+  .row > div{flex:1; min-width:200px;}
+  #loginCard, #appArea{display:none;}
+  .hint{font-size:0.8rem; color:var(--muted); margin-top:-8px; margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Suvidha — Enquiry Admin</h1>
+  <button id="logoutBtn" style="display:none;">Log out</button>
+</header>
+
+<main>
+
+  <div class="card" id="loginCard">
+    <h2>Admin Login</h2>
+    <p class="hint">Use the admin email/password you created in Supabase → Authentication → Users, and that you added to the <code>admins</code> table.</p>
+    <label for="loginEmail">Email</label>
+    <input type="email" id="loginEmail" autocomplete="username">
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" autocomplete="current-password">
+    <button class="primary" id="loginBtn">Log In</button>
+    <p class="msg" id="loginMsg"></p>
+  </div>
+
+  <div id="appArea">
+    <div class="card">
+      <h2>Find an Enquiry</h2>
+      <div class="row">
+        <div>
+          <label for="searchInput">Enquiry Number or Mobile Number</label>
+          <input type="text" id="searchInput" placeholder="SSK-20260817-0042 or 9876543210">
+        </div>
+        <div style="flex:0 0 auto;">
+          <button class="primary" id="searchBtn">Search</button>
+        </div>
+      </div>
+      <p class="msg" id="searchMsg"></p>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <h2>Results</h2>
+      <div style="overflow-x:auto;">
+        <table id="resultsTable">
+          <thead>
+            <tr><th>Number</th><th>Type</th><th>Name</th><th>Mobile</th><th>Service / Problem</th><th>Status</th><th>Submitted</th><th></th></tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="editCard" style="display:none;">
+      <h2>Update Enquiry <span id="editNumber"></span></h2>
+      <div class="row">
+        <div>
+          <label for="editStatus">Status</label>
+          <select id="editStatus">
+            <option>RECEIVED</option>
+            <option>UNDER REVIEW</option>
+            <option>IN PROGRESS</option>
+            <option>COMPLETED</option>
+            <option>NEED MORE INFORMATION</option>
+            <option>CANCELLED</option>
+          </select>
+        </div>
+      </div>
+      <label for="editMessage">Customer-facing Update Message</label>
+      <textarea id="editMessage" placeholder="e.g. Your request is currently being processed."></textarea>
+      <button class="primary" id="saveBtn">Save Update</button>
+      <button class="secondary" id="cancelEditBtn" type="button">Cancel</button>
+      <p class="msg" id="editMsg"></p>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---- Fill these in with the SAME values used in script.js ----
+  var SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+  var SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_PUBLIC_KEY";
+  // -----------------------------------------------------------
+
+  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var currentEditRow = null;
+
+  var loginCard = document.getElementById("loginCard");
+  var appArea = document.getElementById("appArea");
+  var logoutBtn = document.getElementById("logoutBtn");
+
+  function showApp() { loginCard.style.display = "none"; appArea.style.display = "block"; logoutBtn.style.display = "inline-block"; }
+  function showLogin() { loginCard.style.display = "block"; appArea.style.display = "none"; logoutBtn.style.display = "none"; }
+
+  supabase.auth.getSession().then(function (res) {
+    if (res.data.session) { showApp(); } else { showLogin(); }
+  });
+
+  document.getElementById("loginBtn").addEventListener("click", function () {
+    var email = document.getElementById("loginEmail").value.trim();
+    var password = document.getElementById("loginPassword").value;
+    var msg = document.getElementById("loginMsg");
+    msg.textContent = "Logging in..."; msg.className = "msg";
+
+    supabase.auth.signInWithPassword({ email: email, password: password }).then(function (res) {
+      if (res.error) {
+        msg.textContent = res.error.message; msg.className = "msg bad";
+        return;
+      }
+      msg.textContent = "";
+      showApp();
+    });
+  });
+
+  logoutBtn.addEventListener("click", function () {
+    supabase.auth.signOut().then(function () { showLogin(); });
+  });
+
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return iso; }
+  }
+
+  document.getElementById("searchBtn").addEventListener("click", function () {
+    var q = document.getElementById("searchInput").value.trim();
+    var msg = document.getElementById("searchMsg");
+    var resultsCard = document.getElementById("resultsCard");
+    var body = document.getElementById("resultsBody");
+    document.getElementById("editCard").style.display = "none";
+
+    if (!q) { msg.textContent = "Enter an enquiry number or mobile number."; msg.className = "msg bad"; return; }
+    msg.textContent = "Searching..."; msg.className = "msg";
+
+    var query = supabase.from("enquiries").select("*").order("created_at", { ascending: false }).limit(25);
+    query = query.or("enquiry_number.ilike.%" + q + "%,mobile.ilike.%" + q + "%");
+
+    query.then(function (res) {
+      if (res.error) { msg.textContent = "Search failed: " + res.error.message; msg.className = "msg bad"; resultsCard.style.display = "none"; return; }
+      if (!res.data || res.data.length === 0) { msg.textContent = "No matching enquiries found."; msg.className = "msg bad"; resultsCard.style.display = "none"; return; }
+
+      msg.textContent = res.data.length + " result(s) found."; msg.className = "msg good";
+      body.innerHTML = "";
+      res.data.forEach(function (row) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + row.enquiry_number + "</td>" +
+          "<td>" + (row.type === "mobile_repair" ? "Mobile Care" : "Online") + "</td>" +
+          "<td>" + row.name + "</td>" +
+          "<td>" + row.mobile + "</td>" +
+          "<td>" + (row.type === "mobile_repair" ? row.problem : row.service) + "</td>" +
+          "<td><span class=\"status-pill\">" + row.status + "</span></td>" +
+          "<td>" + fmtDate(row.created_at) + "</td>" +
+          "<td><button class=\"secondary\" data-id=\"" + row.id + "\">Edit</button></td>";
+        body.appendChild(tr);
+
+        tr.querySelector("button").addEventListener("click", function () { openEdit(row); });
+      });
+      resultsCard.style.display = "block";
+    });
+  });
+
+  function openEdit(row) {
+    currentEditRow = row;
+    document.getElementById("editCard").style.display = "block";
+    document.getElementById("editNumber").textContent = "— " + row.enquiry_number;
+    document.getElementById("editStatus").value = row.status;
+    document.getElementById("editMessage").value = row.admin_message || "";
+    document.getElementById("editMsg").textContent = "";
+    document.getElementById("editCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("cancelEditBtn").addEventListener("click", function () {
+    document.getElementById("editCard").style.display = "none";
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", function () {
+    if (!currentEditRow) return;
+    var status = document.getElementById("editStatus").value;
+    var adminMessage = document.getElementById("editMessage").value.trim();
+    var msg = document.getElementById("editMsg");
+    var btn = document.getElementById("saveBtn");
+
+    btn.disabled = true; btn.textContent = "Saving...";
+    msg.textContent = ""; msg.className = "msg";
+
+    supabase.from("enquiries")
+      .update({ status: status, admin_message: adminMessage || null })
+      .eq("id", currentEditRow.id)
+      .then(function (res) {
+        btn.disabled = false; btn.textContent = "Save Update";
+        if (res.error) { msg.textContent = "Save failed: " + res.error.message; msg.className = "msg bad"; return; }
+        msg.textContent = "Saved. The customer will see this update immediately on Check Status.";
+        msg.className = "msg good";
+      });
+  });
+})();
+</script>
+</body>
+</html>
