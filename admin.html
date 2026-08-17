@@ -159,7 +159,60 @@
 
   checkAdmin(res.data.session.user);
 });
+function loadAllEnquiries() {
+  var msg = document.getElementById("searchMsg");
+  var resultsCard = document.getElementById("resultsCard");
+  var body = document.getElementById("resultsBody");
 
+  msg.textContent = "Loading enquiries...";
+  msg.className = "msg";
+
+  supabase
+    .from("enquiries")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(100)
+    .then(function (res) {
+      if (res.error) {
+        msg.textContent = "Failed to load enquiries: " + res.error.message;
+        msg.className = "msg bad";
+        return;
+      }
+
+      if (!res.data || res.data.length === 0) {
+        msg.textContent = "No enquiries found.";
+        msg.className = "msg";
+        return;
+      }
+
+      msg.textContent = res.data.length + " enquiry/enquiries found.";
+      msg.className = "msg good";
+
+      body.innerHTML = "";
+
+      res.data.forEach(function (row) {
+        var tr = document.createElement("tr");
+
+        tr.innerHTML =
+          "<td>" + (row.enquiry_number || "-") + "</td>" +
+          "<td>" + (row.type === "mobile_repair" ? "Mobile Care" : "Online") + "</td>" +
+          "<td>" + (row.name || "-") + "</td>" +
+          "<td>" + (row.mobile || "-") + "</td>" +
+          "<td>" + (row.type === "mobile_repair" ? (row.problem || "-") : (row.service || "-")) + "</td>" +
+          "<td><span class=\"status-pill\">" + (row.status || "-") + "</span></td>" +
+          "<td>" + fmtDate(row.created_at) + "</td>" +
+          "<td><button class=\"secondary\" type=\"button\">Edit</button></td>";
+
+        body.appendChild(tr);
+
+        tr.querySelector("button").addEventListener("click", function () {
+          openEdit(row);
+        });
+      });
+
+      resultsCard.style.display = "block";
+    });
+}
   document.getElementById("loginBtn").addEventListener("click", function () {
     var email = document.getElementById("loginEmail").value.trim();
     var password = document.getElementById("loginPassword").value;
