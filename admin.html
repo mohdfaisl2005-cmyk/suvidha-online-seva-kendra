@@ -213,6 +213,13 @@ function loadAllEnquiries() {
       resultsCard.style.display = "block";
     });
 }
+  document.getElementById("refreshBtn").addEventListener("click", function () {
+  loadAllEnquiries();
+});
+
+document.getElementById("allBtn").addEventListener("click", function () {
+  loadAllEnquiries();
+});
   document.getElementById("loginBtn").addEventListener("click", function () {
     var email = document.getElementById("loginEmail").value.trim();
     var password = document.getElementById("loginPassword").value;
