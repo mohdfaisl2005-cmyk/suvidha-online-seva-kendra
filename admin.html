@@ -127,15 +127,10 @@
   function showApp() { loginCard.style.display = "none"; appArea.style.display = "block"; logoutBtn.style.display = "inline-block"; }
   function showLogin() { loginCard.style.display = "block"; appArea.style.display = "none"; logoutBtn.style.display = "none"; }
   function checkAdmin(user) {
-    alert("Current User ID: " + user.id + "\nEmail: " + user.email);
-    
   supabase
-    .from("admins")
-    .select("user_id,email")
-    .eq("user_id", user.id)
-    .maybeSingle()
+    .rpc("check_admin")
     .then(function (res) {
-      if (res.error || !res.data) {
+      if (res.error || res.data !== true) {
         supabase.auth.signOut().then(function () {
           showLogin();
 
