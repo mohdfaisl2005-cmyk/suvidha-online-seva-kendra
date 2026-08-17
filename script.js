@@ -678,14 +678,14 @@
   els.msg.classList.add("is-error");
   return;
         }
-        if (!res.data || res.data.length === 0) {
-          els.msg.textContent = "Enquiry not found. Please check your enquiry number.";
-          els.msg.classList.add("is-error");
-          return;
-        }
- 
-        els.msg.textContent = "";
-        renderStatusResult(els.result, res.data);
+        if (!res.data) {
+  els.msg.textContent = "Enquiry not found. Please check your enquiry number.";
+  els.msg.classList.add("is-error");
+  return;
+}
+
+els.msg.textContent = "";
+renderStatusResult(els.result, res.data);
       })
       .catch(function (err) {
         els.submitBtn.disabled = false;
