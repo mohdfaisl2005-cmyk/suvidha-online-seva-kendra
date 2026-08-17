@@ -685,7 +685,24 @@
 }
 
 els.msg.textContent = "";
-renderStatusResult(els.result, res.data[0]);
+
+var row = res.data;
+
+if (Array.isArray(row)) {
+  row = row[0];
+}
+
+if (row && row.get_enquiry_status) {
+  row = row.get_enquiry_status;
+}
+
+if (!row || !row.enquiry_number) {
+  els.msg.textContent = "Invalid status response. Please try again.";
+  els.msg.classList.add("is-error");
+  return;
+}
+
+renderStatusResult(els.result, row);
       })
       .catch(function (err) {
         els.submitBtn.disabled = false;
