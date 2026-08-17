@@ -673,10 +673,10 @@
         els.submitBtn.textContent = "Check Status";
  
         if (res.error) {
-          console.error("Suvidha: get_enquiry_status failed", res.error);
-          els.msg.textContent = "Unable to check status right now. Please try again.";
-          els.msg.classList.add("is-error");
-          return;
+  console.error("Suvidha: get_enquiry_status failed", res.error);
+  els.msg.textContent = "Supabase Error: " + res.error.message;
+  els.msg.classList.add("is-error");
+  return;
         }
         if (!res.data || res.data.length === 0) {
           els.msg.textContent = "Enquiry not found. Please check your enquiry number.";
