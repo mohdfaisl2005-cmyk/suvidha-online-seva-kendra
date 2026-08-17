@@ -126,6 +126,28 @@
 
   function showApp() { loginCard.style.display = "none"; appArea.style.display = "block"; logoutBtn.style.display = "inline-block"; }
   function showLogin() { loginCard.style.display = "block"; appArea.style.display = "none"; logoutBtn.style.display = "none"; }
+  function checkAdmin(user) {
+  supabase
+    .from("admins")
+    .select("user_id,email")
+    .eq("user_id", user.id)
+    .maybeSingle()
+    .then(function (res) {
+      if (res.error || !res.data) {
+        supabase.auth.signOut().then(function () {
+          showLogin();
+
+          var msg = document.getElementById("loginMsg");
+          msg.textContent = "Access denied. This account is not an admin.";
+          msg.className = "msg bad";
+        });
+
+        return;
+      }
+
+      showApp();
+    });
+  }
 
   supabase.auth.getSession().then(function (res) {
   if (!res.data.session) {
