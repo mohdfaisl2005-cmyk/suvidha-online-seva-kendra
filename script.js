@@ -685,7 +685,7 @@
         }
  
         els.msg.textContent = "";
-        renderStatusResult(els.result, res.data[0]);
+        renderStatusResult(els.result, res.data);
       })
       .catch(function (err) {
         els.submitBtn.disabled = false;
