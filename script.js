@@ -464,7 +464,7 @@
         var enquiryNumber = res.data;
 
         sendNotificationEmails({
-          to_email: CONFI.emailjs.businessEmail,
+          to_email: CONFIG.emailjs.businessEmail,
           enquiry_number: enquiryNumber,
           date: formatDate(new Date().toISOString()),
           name: name.value.trim(),
