@@ -113,7 +113,7 @@
   "use strict";
 
   // ---- Fill these in with the SAME values used in script.js ----
-  var SUPABASE_URL = " https://fkkaggupxzovecwuaafm.supabase.co";
+  var SUPABASE_URL = "https://fkkaggupxzovecwuaafm.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_QaQN1Wm0gWAXiU20s_BBlA_9fxBloLs";
   // -----------------------------------------------------------
 
@@ -128,8 +128,13 @@
   function showLogin() { loginCard.style.display = "block"; appArea.style.display = "none"; logoutBtn.style.display = "none"; }
 
   supabase.auth.getSession().then(function (res) {
-    if (res.data.session) { showApp(); } else { showLogin(); }
-  });
+  if (!res.data.session) {
+    showLogin();
+    return;
+  }
+
+  checkAdmin(res.data.session.user);
+});
 
   document.getElementById("loginBtn").addEventListener("click", function () {
     var email = document.getElementById("loginEmail").value.trim();
@@ -143,7 +148,7 @@
         return;
       }
       msg.textContent = "";
-      showApp();
+checkAdmin(res.data.user);
     });
   });
 
