@@ -130,11 +130,6 @@
   supabase
     .rpc("check_admin")
     .then(function (res) {
-      alert(
-        "RPC DATA: " + JSON.stringify(res.data) +
-        "\nRPC ERROR: " + (res.error ? res.error.message : "NONE") +
-        "\nUSER ID: " + user.id
-      );
 
       if (res.error || res.data !== true) {
         supabase.auth.signOut().then(function () {
