@@ -455,10 +455,14 @@
         setSubmitting(submitBtn, false, "Submit Enquiry");
 
         if (res.error || !res.data) {
-          console.error("Suvidha: submit_online_enquiry failed", res.error);
-          msg.textContent = "Unable to submit your enquiry right now. Please try again.";
-          msg.className = "form-msg is-error";
-          return;
+  console.error("Suvidha: submit_online_enquiry failed", res.error);
+
+  msg.textContent = res.error
+    ? "Supabase Error: " + res.error.message
+    : "Supabase returned no enquiry number.";
+
+  msg.className = "form-msg is-error";
+  return;
         }
 
         var enquiryNumber = res.data;
