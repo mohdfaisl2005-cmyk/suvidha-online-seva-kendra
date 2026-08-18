@@ -118,6 +118,19 @@
     $all("a", nav).forEach(function (link) { link.addEventListener("click", closeNav); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeNav(); });
   }
+   var allIndiaService = document.getElementById("allIndiaService");
+var statePopup = document.getElementById("statePopup");
+var closeStatePopup = document.getElementById("closeStatePopup");
+
+if (allIndiaService && statePopup && closeStatePopup) {
+  allIndiaService.addEventListener("click", function () {
+    statePopup.hidden = false;
+  });
+
+  closeStatePopup.addEventListener("click", function () {
+    statePopup.hidden = true;
+  });
+}
 
   /* ------------------------------------------------------------------
      Anchor focus for accessibility — unchanged
