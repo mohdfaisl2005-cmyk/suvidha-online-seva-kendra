@@ -755,7 +755,15 @@ if (allIndiaService && statePopup && closeStatePopup) {
     statePopup.hidden = true;
   });
 }
- 
+
+     var stateUp = document.getElementById("state-up");
+var upServiceInfo = document.getElementById("upServiceInfo");
+
+if (stateUp && upServiceInfo) {
+  stateUp.addEventListener("click", function () {
+    upServiceInfo.hidden = false;
+  });
+}
     // New: build the status-check section right away so #check-status
     // exists and links to it work, even while the backend is loading.
     initStatusChecker();
